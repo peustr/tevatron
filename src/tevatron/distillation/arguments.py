@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 from tevatron.arguments import ModelArguments, TevatronTrainingArguments
 
+
 @dataclass
 class DistilModelArguments(ModelArguments):
     teacher_model_name_or_path: Optional[str] = field(

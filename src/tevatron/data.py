@@ -11,16 +11,17 @@ from .arguments import DataArguments
 from .trainer import TevatronTrainer
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class TrainDataset(Dataset):
     def __init__(
-            self,
-            data_args: DataArguments,
-            dataset: datasets.Dataset,
-            tokenizer: PreTrainedTokenizer,
-            trainer: TevatronTrainer = None,
+        self,
+        data_args: DataArguments,
+        dataset: datasets.Dataset,
+        tokenizer: PreTrainedTokenizer,
+        trainer: TevatronTrainer = None,
     ):
         self.train_data = dataset
         self.tok = tokenizer
@@ -32,7 +33,7 @@ class TrainDataset(Dataset):
     def create_one_example(self, text_encoding: List[int], is_query=False):
         item = self.tok.prepare_for_model(
             text_encoding,
-            truncation='only_first',
+            truncation="only_first",
             max_length=self.data_args.q_max_len if is_query else self.data_args.p_max_len,
             padding=False,
             return_attention_mask=False,
@@ -49,12 +50,12 @@ class TrainDataset(Dataset):
 
         _hashed_seed = hash(item + self.trainer.args.seed)
 
-        qry = group['query']
+        qry = group["query"]
         encoded_query = self.create_one_example(qry, is_query=True)
 
         encoded_passages = []
-        group_positives = group['positives']
-        group_negatives = group['negatives']
+        group_positives = group["positives"]
+        group_negatives = group["negatives"]
 
         if self.data_args.positive_passage_no_shuffle:
             pos_psg = group_positives[0]
@@ -74,7 +75,7 @@ class TrainDataset(Dataset):
             negs = [x for x in group_negatives]
             random.Random(_hashed_seed).shuffle(negs)
             negs = negs * 2
-            negs = negs[_offset: _offset + negative_size]
+            negs = negs[_offset : _offset + negative_size]
 
         for neg_psg in negs:
             encoded_passages.append(self.create_one_example(neg_psg))
@@ -83,7 +84,7 @@ class TrainDataset(Dataset):
 
 
 class EncodeDataset(Dataset):
-    input_keys = ['text_id', 'text']
+    input_keys = ["text_id", "text"]
 
     def __init__(self, dataset: datasets.Dataset, tokenizer: PreTrainedTokenizer, max_len=128):
         self.encode_data = dataset
@@ -98,7 +99,7 @@ class EncodeDataset(Dataset):
         encoded_text = self.tok.prepare_for_model(
             text,
             max_length=self.max_len,
-            truncation='only_first',
+            truncation="only_first",
             padding=False,
             return_token_type_ids=False,
         )
@@ -112,6 +113,7 @@ class QPCollator(DataCollatorWithPadding):
     and pass batch separately to the actual collator.
     Abstract out data detail for the model.
     """
+
     max_q_len: int = 32
     max_p_len: int = 128
 
@@ -126,13 +128,13 @@ class QPCollator(DataCollatorWithPadding):
 
         q_collated = self.tokenizer.pad(
             qq,
-            padding='max_length',
+            padding="max_length",
             max_length=self.max_q_len,
             return_tensors="pt",
         )
         d_collated = self.tokenizer.pad(
             dd,
-            padding='max_length',
+            padding="max_length",
             max_length=self.max_p_len,
             return_tensors="pt",
         )

@@ -11,15 +11,16 @@ from transformers import PreTrainedTokenizer, BatchEncoding, DataCollatorWithPad
 from tevatron.arguments import DataArguments
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class RerankerTrainDataset(Dataset):
     def __init__(
-            self,
-            data_args: DataArguments,
-            dataset: datasets.Dataset,
-            tokenizer: PreTrainedTokenizer,
+        self,
+        data_args: DataArguments,
+        dataset: datasets.Dataset,
+        tokenizer: PreTrainedTokenizer,
     ):
         self.train_data = dataset
         self.tok = tokenizer
@@ -30,7 +31,7 @@ class RerankerTrainDataset(Dataset):
         item = self.tok.prepare_for_model(
             query_encoding,
             text_encoding,
-            truncation='only_first',
+            truncation="only_first",
             max_length=self.data_args.q_max_len + self.data_args.p_max_len,
             padding=False,
             return_attention_mask=False,
@@ -43,9 +44,9 @@ class RerankerTrainDataset(Dataset):
 
     def __getitem__(self, item) -> Tuple[BatchEncoding, List[BatchEncoding]]:
         group = self.train_data[item]
-        qry = group['query']
-        group_positives = group['positives']
-        group_negatives = group['negatives']
+        qry = group["query"]
+        group_positives = group["positives"]
+        group_negatives = group["negatives"]
         encoded_pairs = []
 
         if self.data_args.positive_passage_no_shuffle:
@@ -68,7 +69,7 @@ class RerankerTrainDataset(Dataset):
 
 
 class RerankerInferenceDataset(Dataset):
-    input_keys = ['query_id', 'query', 'text_id', 'text']
+    input_keys = ["query_id", "query", "text_id", "text"]
 
     def __init__(self, dataset: datasets.Dataset, tokenizer: PreTrainedTokenizer, max_q_len=32, max_p_len=256):
         self.encode_data = dataset
@@ -85,7 +86,7 @@ class RerankerInferenceDataset(Dataset):
             query,
             text,
             max_length=self.max_q_len + self.max_p_len,
-            truncation='only_first',
+            truncation="only_first",
             padding=False,
             return_token_type_ids=True,
         )
@@ -94,7 +95,6 @@ class RerankerInferenceDataset(Dataset):
 
 @dataclass
 class RerankerTrainCollator(DataCollatorWithPadding):
-
     max_q_len: int = 32
     max_p_len: int = 128
 
@@ -102,8 +102,8 @@ class RerankerTrainCollator(DataCollatorWithPadding):
         pp = sum(features, [])
         pair_collated = self.tokenizer.pad(
             pp,
-            padding='max_length',
-            max_length=self.max_q_len+self.max_p_len,
+            padding="max_length",
+            max_length=self.max_q_len + self.max_p_len,
             return_tensors="pt",
         )
         return pair_collated
@@ -120,7 +120,7 @@ class RerankerInferenceCollator(DataCollatorWithPadding):
 
 
 class RerankPreProcessor:
-    def __init__(self, tokenizer, query_max_length=32, text_max_length=256, separator=' '):
+    def __init__(self, tokenizer, query_max_length=32, text_max_length=256, separator=" "):
         self.tokenizer = tokenizer
         self.query_max_length = query_max_length
         self.text_max_length = text_max_length
@@ -128,26 +128,25 @@ class RerankPreProcessor:
 
     def __call__(self, example):
         example = example
-        query = self.tokenizer.encode(example['query'],
-                                      add_special_tokens=False,
-                                      max_length=self.query_max_length,
-                                      truncation=True)
-        
-        text = example['title'] + self.separator + example['text'] if 'title' in example else example['text']
-        encoded_passages = self.tokenizer.encode(text,
-                                            add_special_tokens=False,
-                                            max_length=self.text_max_length,
-                                            truncation=True)
-        return {'query_id': example['query_id'], 'query': query, 'text_id': example['docid'], 'text': encoded_passages}
+        query = self.tokenizer.encode(
+            example["query"], add_special_tokens=False, max_length=self.query_max_length, truncation=True
+        )
+
+        text = example["title"] + self.separator + example["text"] if "title" in example else example["text"]
+        encoded_passages = self.tokenizer.encode(
+            text, add_special_tokens=False, max_length=self.text_max_length, truncation=True
+        )
+        return {"query_id": example["query_id"], "query": query, "text_id": example["docid"], "text": encoded_passages}
+
 
 class HFRerankDataset:
     def __init__(self, tokenizer: PreTrainedTokenizer, data_args: DataArguments, cache_dir: str):
         data_files = data_args.encode_in_path
         if data_files:
             data_files = {data_args.dataset_split: data_files}
-        self.dataset = datasets.load_dataset(data_args.dataset_name,
-                                    data_args.dataset_language,
-                                    data_files=data_files, cache_dir=cache_dir)[data_args.dataset_split]
+        self.dataset = datasets.load_dataset(
+            data_args.dataset_name, data_args.dataset_language, data_files=data_files, cache_dir=cache_dir
+        )[data_args.dataset_split]
         self.preprocessor = RerankPreProcessor
         self.tokenizer = tokenizer
         self.q_max_len = data_args.q_max_len

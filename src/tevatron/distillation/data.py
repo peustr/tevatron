@@ -11,11 +11,12 @@ from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from tevatron.arguments import DataArguments
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
 class DistilPreProcessor:
-    def __init__(self, student_tokenizer, teacher_tokenizer, query_max_length=32, text_max_length=256, separator=' '):
+    def __init__(self, student_tokenizer, teacher_tokenizer, query_max_length=32, text_max_length=256, separator=" "):
         self.student_tokenizer = student_tokenizer
         self.teacher_tokenizer = teacher_tokenizer
         self.query_max_length = query_max_length
@@ -23,71 +24,80 @@ class DistilPreProcessor:
         self.separator = separator
 
     def __call__(self, example):
-        student_query = self.student_tokenizer.encode(example['query'],
-                                      add_special_tokens=False,
-                                      max_length=self.query_max_length,
-                                      truncation=True)
-        teacher_query = self.teacher_tokenizer.encode(example['query'],
-                                    add_special_tokens=False,
-                                    max_length=self.query_max_length,
-                                    truncation=True)
+        student_query = self.student_tokenizer.encode(
+            example["query"], add_special_tokens=False, max_length=self.query_max_length, truncation=True
+        )
+        teacher_query = self.teacher_tokenizer.encode(
+            example["query"], add_special_tokens=False, max_length=self.query_max_length, truncation=True
+        )
         student_positives = []
         teacher_positives = []
-        for pos in example['positive_passages']:
-            text = pos['title'] + self.separator + pos['text'] if 'title' in pos else pos['text']
-            student_positives.append(self.student_tokenizer.encode(text,
-                                                   add_special_tokens=False,
-                                                   max_length=self.text_max_length,
-                                                   truncation=True))
-            teacher_positives.append(self.teacher_tokenizer.encode(text,
-                                                add_special_tokens=False,
-                                                max_length=self.text_max_length,
-                                                truncation=True))
+        for pos in example["positive_passages"]:
+            text = pos["title"] + self.separator + pos["text"] if "title" in pos else pos["text"]
+            student_positives.append(
+                self.student_tokenizer.encode(
+                    text, add_special_tokens=False, max_length=self.text_max_length, truncation=True
+                )
+            )
+            teacher_positives.append(
+                self.teacher_tokenizer.encode(
+                    text, add_special_tokens=False, max_length=self.text_max_length, truncation=True
+                )
+            )
         student_negatives = []
         teacher_negatives = []
-        for neg in example['negative_passages']:
-            text = neg['title'] + self.separator + neg['text'] if 'title' in neg else neg['text']
-            student_negatives.append(self.student_tokenizer.encode(text,
-                                                   add_special_tokens=False,
-                                                   max_length=self.text_max_length,
-                                                   truncation=True))
-            teacher_negatives.append(self.teacher_tokenizer.encode(text,
-                                                add_special_tokens=False,
-                                                max_length=self.text_max_length,
-                                                truncation=True))
+        for neg in example["negative_passages"]:
+            text = neg["title"] + self.separator + neg["text"] if "title" in neg else neg["text"]
+            student_negatives.append(
+                self.student_tokenizer.encode(
+                    text, add_special_tokens=False, max_length=self.text_max_length, truncation=True
+                )
+            )
+            teacher_negatives.append(
+                self.teacher_tokenizer.encode(
+                    text, add_special_tokens=False, max_length=self.text_max_length, truncation=True
+                )
+            )
         return {
-            'student_query': student_query,
-            'student_positives': student_positives,
-            'student_negatives': student_negatives,
-            'teacher_query': teacher_query,
-            'teacher_positives': teacher_positives,
-            'teacher_negatives': teacher_negatives
-            }
+            "student_query": student_query,
+            "student_positives": student_positives,
+            "student_negatives": student_negatives,
+            "teacher_query": teacher_query,
+            "teacher_positives": teacher_positives,
+            "teacher_negatives": teacher_negatives,
+        }
 
 
 class HFDistilTrainDataset:
-    def __init__(self, student_tokenizer: PreTrainedTokenizer, teacher_tokenizer: PreTrainedTokenizer,
-                       data_args: DataArguments, cache_dir: str):
+    def __init__(
+        self,
+        student_tokenizer: PreTrainedTokenizer,
+        teacher_tokenizer: PreTrainedTokenizer,
+        data_args: DataArguments,
+        cache_dir: str,
+    ):
         data_files = data_args.train_path
         if data_files:
             data_files = {data_args.dataset_split: data_files}
-        self.dataset = load_dataset(data_args.dataset_name,
-                                    data_args.dataset_language,
-                                    data_files=data_files, cache_dir=cache_dir)[data_args.dataset_split]
-        self.preprocessor = None if data_args.dataset_name == 'json' else DistilPreProcessor
+        self.dataset = load_dataset(
+            data_args.dataset_name, data_args.dataset_language, data_files=data_files, cache_dir=cache_dir
+        )[data_args.dataset_split]
+        self.preprocessor = None if data_args.dataset_name == "json" else DistilPreProcessor
         self.student_tokenizer = student_tokenizer
         self.teacher_tokenizer = teacher_tokenizer
         self.q_max_len = data_args.q_max_len
         self.p_max_len = data_args.p_max_len
         self.proc_num = data_args.dataset_proc_num
         self.neg_num = data_args.train_n_passages - 1
-        self.separator = ' '
+        self.separator = " "
 
     def process(self, shard_num=1, shard_idx=0):
         self.dataset = self.dataset.shard(shard_num, shard_idx)
         if self.preprocessor is not None:
             self.dataset = self.dataset.map(
-                self.preprocessor(self.student_tokenizer, self.teacher_tokenizer, self.q_max_len, self.p_max_len, self.separator),
+                self.preprocessor(
+                    self.student_tokenizer, self.teacher_tokenizer, self.q_max_len, self.p_max_len, self.separator
+                ),
                 batched=False,
                 num_proc=self.proc_num,
                 remove_columns=self.dataset.column_names,
@@ -98,11 +108,11 @@ class HFDistilTrainDataset:
 
 class DistilTrainDataset(Dataset):
     def __init__(
-            self,
-            data_args: DataArguments,
-            dataset: datasets.Dataset,
-            student_tokenizer: PreTrainedTokenizer,
-            teacher_tokenizer: PreTrainedTokenizer
+        self,
+        data_args: DataArguments,
+        dataset: datasets.Dataset,
+        student_tokenizer: PreTrainedTokenizer,
+        teacher_tokenizer: PreTrainedTokenizer,
     ):
         self.train_data = dataset
         self.student_tokenizer = student_tokenizer
@@ -113,7 +123,7 @@ class DistilTrainDataset(Dataset):
     def create_student_example(self, text_encoding: List[int], is_query=False):
         item = self.student_tokenizer.prepare_for_model(
             text_encoding,
-            truncation='only_first',
+            truncation="only_first",
             max_length=self.data_args.q_max_len if is_query else self.data_args.p_max_len,
             padding=False,
             return_attention_mask=False,
@@ -125,7 +135,7 @@ class DistilTrainDataset(Dataset):
         item = self.teacher_tokenizer.prepare_for_model(
             query_encoding,
             text_encoding,
-            truncation='only_first',
+            truncation="only_first",
             max_length=self.data_args.q_max_len + self.data_args.p_max_len,
             padding=False,
             return_attention_mask=False,
@@ -138,13 +148,13 @@ class DistilTrainDataset(Dataset):
 
     def __getitem__(self, item) -> Tuple[BatchEncoding, List[BatchEncoding], List[BatchEncoding]]:
         group = self.train_data[item]
-        student_qry = group['student_query']
-        student_positives = group['student_positives']
-        student_negatives = group['student_negatives']
-        teacher_qry = group['teacher_query']
-        teacher_positives = group['teacher_positives']
-        teacher_negatives = group['teacher_negatives']
-        
+        student_qry = group["student_query"]
+        student_positives = group["student_positives"]
+        student_negatives = group["student_negatives"]
+        teacher_qry = group["teacher_query"]
+        teacher_positives = group["teacher_positives"]
+        teacher_negatives = group["teacher_negatives"]
+
         encoded_student_query = self.create_student_example(student_qry, is_query=True)
         encoded_student_passages = []
         encoded_teacher_pairs = []
@@ -171,7 +181,6 @@ class DistilTrainDataset(Dataset):
 
 @dataclass
 class DistilTrainCollator:
-    
     tokenizer: PreTrainedTokenizerBase
     teacher_tokenizer: PreTrainedTokenizerBase
     max_q_len: int = 32
@@ -191,20 +200,20 @@ class DistilTrainCollator:
 
         q_collated = self.tokenizer.pad(
             qq,
-            padding='max_length',
+            padding="max_length",
             max_length=self.max_q_len,
             return_tensors="pt",
         )
         d_collated = self.tokenizer.pad(
             dd,
-            padding='max_length',
+            padding="max_length",
             max_length=self.max_p_len,
             return_tensors="pt",
         )
         p_collated = self.teacher_tokenizer.pad(
             pp,
-            padding='max_length',
-            max_length=self.max_q_len+self.max_p_len,
+            padding="max_length",
+            max_length=self.max_q_len + self.max_p_len,
             return_tensors="pt",
         )
         return q_collated, d_collated, p_collated

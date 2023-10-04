@@ -8,8 +8,7 @@ from transformers import (
     HfArgumentParser,
     set_seed,
 )
-from tevatron.arguments import ModelArguments, DataArguments, \
-    TevatronTrainingArguments as TrainingArguments
+from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
 
 from tevatron.reranker.modeling import RerankerModel
 from tevatron.reranker.data import RerankerTrainDataset, RerankerTrainCollator
@@ -31,10 +30,10 @@ def main():
         training_args: TrainingArguments
 
     if (
-            os.path.exists(training_args.output_dir)
-            and os.listdir(training_args.output_dir)
-            and training_args.do_train
-            and not training_args.overwrite_output_dir
+        os.path.exists(training_args.output_dir)
+        and os.listdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -67,7 +66,7 @@ def main():
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
-        cache_dir=model_args.cache_dir
+        cache_dir=model_args.cache_dir,
     )
     model = RerankerModel.build(
         model_args,
@@ -76,8 +75,9 @@ def main():
         cache_dir=model_args.cache_dir,
     )
 
-    train_dataset = HFTrainDataset(tokenizer=tokenizer, data_args=data_args,
-                                   cache_dir=data_args.data_cache_dir or model_args.cache_dir)
+    train_dataset = HFTrainDataset(
+        tokenizer=tokenizer, data_args=data_args, cache_dir=data_args.data_cache_dir or model_args.cache_dir
+    )
     if training_args.local_rank > 0:
         print("Waiting for main process to perform the mapping")
         torch.distributed.barrier()
@@ -90,11 +90,7 @@ def main():
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        data_collator=RerankerTrainCollator(
-            tokenizer,
-            max_p_len=data_args.p_max_len,
-            max_q_len=data_args.q_max_len
-        ),
+        data_collator=RerankerTrainCollator(tokenizer, max_p_len=data_args.p_max_len, max_q_len=data_args.q_max_len),
     )
     train_dataset.trainer = trainer
 

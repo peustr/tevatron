@@ -13,12 +13,16 @@ class SpladeModel(EncoderModel):
         if psg is None:
             return None
         psg_out = self.lm_p(**psg, return_dict=True).logits
-        aggregated_psg_out, _ = torch.max(torch.log(1 + torch.relu(psg_out)) * psg['attention_mask'].unsqueeze(-1), dim=1)
+        aggregated_psg_out, _ = torch.max(
+            torch.log(1 + torch.relu(psg_out)) * psg["attention_mask"].unsqueeze(-1), dim=1
+        )
         return aggregated_psg_out
 
     def encode_query(self, qry):
         if qry is None:
             return None
         qry_out = self.lm_q(**qry, return_dict=True).logits
-        aggregated_psg_out, _ = torch.max(torch.log(1 + torch.relu(qry_out)) * qry['attention_mask'].unsqueeze(-1), dim=1)
+        aggregated_psg_out, _ = torch.max(
+            torch.log(1 + torch.relu(qry_out)) * qry["attention_mask"].unsqueeze(-1), dim=1
+        )
         return aggregated_psg_out

@@ -8,8 +8,7 @@ from transformers import (
     set_seed,
 )
 
-from tevatron.arguments import ModelArguments, DataArguments, \
-    TevatronTrainingArguments as TrainingArguments
+from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
 from tevatron.data import TrainDataset, QPCollator
 from tevatron.modeling import UniCoilModel
 from tevatron.trainer import TevatronTrainer
@@ -30,10 +29,10 @@ def main():
         training_args: TrainingArguments
 
     if (
-            os.path.exists(training_args.output_dir)
-            and os.listdir(training_args.output_dir)
-            and training_args.do_train
-            and not training_args.overwrite_output_dir
+        os.path.exists(training_args.output_dir)
+        and os.listdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -76,19 +75,16 @@ def main():
         cache_dir=model_args.cache_dir,
     )
 
-    train_dataset = HFTrainDataset(tokenizer=tokenizer, data_args=data_args,
-                                   cache_dir=data_args.data_cache_dir or model_args.cache_dir)
+    train_dataset = HFTrainDataset(
+        tokenizer=tokenizer, data_args=data_args, cache_dir=data_args.data_cache_dir or model_args.cache_dir
+    )
     train_dataset = TrainDataset(data_args, train_dataset.process(), tokenizer)
 
     trainer = TevatronTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        data_collator=QPCollator(
-            tokenizer,
-            max_p_len=data_args.p_max_len,
-            max_q_len=data_args.q_max_len
-        ),
+        data_collator=QPCollator(tokenizer, max_p_len=data_args.p_max_len, max_q_len=data_args.q_max_len),
     )
     train_dataset.trainer = trainer
 

@@ -27,7 +27,7 @@ class SpladeTrainingArguments(TevatronTrainingArguments):
 class SpladeTrainer(TevatronTrainer):
     def __init__(self, *args, **kwargs):
         super(SpladeTrainer, self).__init__(*args, **kwargs)
-        if self.args.negatives_x_device:    
+        if self.args.negatives_x_device:
             self.world_size = torch.distributed.get_world_size()
 
     @staticmethod
@@ -40,8 +40,8 @@ class SpladeTrainer(TevatronTrainer):
         q_reps = output.q_reps
         p_reps = output.p_reps
         loss = output.loss
-        q_flops_loss = self.args.q_flops_loss_factor*self._flops(q_reps)
-        p_flops_loss = self.args.p_flops_loss_factor*self._flops(p_reps)
+        q_flops_loss = self.args.q_flops_loss_factor * self._flops(q_reps)
+        p_flops_loss = self.args.p_flops_loss_factor * self._flops(p_reps)
         if self.args.negatives_x_device:
             q_flops_loss *= self.world_size
             p_flops_loss *= self.world_size
@@ -49,6 +49,7 @@ class SpladeTrainer(TevatronTrainer):
 
 
 TrainingArguments = SpladeTrainingArguments
+
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
@@ -62,10 +63,10 @@ def main():
         training_args: TrainingArguments
 
     if (
-            os.path.exists(training_args.output_dir)
-            and os.listdir(training_args.output_dir)
-            and training_args.do_train
-            and not training_args.overwrite_output_dir
+        os.path.exists(training_args.output_dir)
+        and os.listdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -108,19 +109,16 @@ def main():
         cache_dir=model_args.cache_dir,
     )
 
-    train_dataset = HFTrainDataset(tokenizer=tokenizer, data_args=data_args,
-                                   cache_dir=data_args.data_cache_dir or model_args.cache_dir)
+    train_dataset = HFTrainDataset(
+        tokenizer=tokenizer, data_args=data_args, cache_dir=data_args.data_cache_dir or model_args.cache_dir
+    )
     train_dataset = TrainDataset(data_args, train_dataset.process(), tokenizer)
 
     trainer = SpladeTrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        data_collator=QPCollator(
-            tokenizer,
-            max_p_len=data_args.p_max_len,
-            max_q_len=data_args.q_max_len
-        ),
+        data_collator=QPCollator(tokenizer, max_p_len=data_args.p_max_len, max_q_len=data_args.q_max_len),
     )
     train_dataset.trainer = trainer
 

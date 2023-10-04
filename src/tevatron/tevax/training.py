@@ -41,7 +41,7 @@ class DualParams(PyTreeNode):
     @classmethod
     def create(cls, *ps):
         if len(ps) == 1:
-            return cls(params=ps*2)
+            return cls(params=ps * 2)
         else:
             p_params, q_params = ps
             return cls(params=[p_params, q_params])
@@ -51,7 +51,7 @@ class RetrieverTrainState(TrainState):
     params: Union[TiedParams, DualParams]
 
 
-def retriever_train_step(state, queries, passages, dropout_rng, axis='device'):
+def retriever_train_step(state, queries, passages, dropout_rng, axis="device"):
     q_dropout_rng, p_dropout_rng, new_dropout_rng = jax.random.split(dropout_rng, 3)
 
     def compute_loss(params):
@@ -67,11 +67,11 @@ def retriever_train_step(state, queries, passages, dropout_rng, axis='device'):
     return loss, new_state, new_dropout_rng
 
 
-def grad_cache_train_step(state, queries, passages, dropout_rng, axis='device', q_n_subbatch=1, p_n_subbatch=1):
+def grad_cache_train_step(state, queries, passages, dropout_rng, axis="device", q_n_subbatch=1, p_n_subbatch=1):
     try:
         from grad_cache import cachex
     except ImportError:
-        raise ModuleNotFoundError('GradCache packaged needs to be installed for running grad_cache_train_step')
+        raise ModuleNotFoundError("GradCache packaged needs to be installed for running grad_cache_train_step")
 
     def encode_query(params, **kwargs):
         return state.apply_fn(**kwargs, params=params.q_params, train=True)[0][:, 0, :]

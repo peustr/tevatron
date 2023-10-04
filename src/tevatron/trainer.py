@@ -11,10 +11,12 @@ import torch.distributed as dist
 from .loss import SimpleContrastiveLoss, DistributedContrastiveLoss
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 try:
     from grad_cache import GradCache
+
     _grad_cache_available = True
 except ModuleNotFoundError:
     _grad_cache_available = False
@@ -32,8 +34,7 @@ class TevatronTrainer(Trainer):
         self.model.save(output_dir)
 
     def _prepare_inputs(
-            self,
-            inputs: Tuple[Dict[str, Union[torch.Tensor, Any]], ...]
+        self, inputs: Tuple[Dict[str, Union[torch.Tensor, Any]], ...]
     ) -> List[Dict[str, Union[torch.Tensor, Any]]]:
         prepared = []
         for x in inputs:
@@ -86,10 +87,11 @@ def get_dense_rep(x):
 
 class GCTrainer(TevatronTrainer):
     def __init__(self, *args, **kwargs):
-        logger.info('Initializing Gradient Cache Trainer')
+        logger.info("Initializing Gradient Cache Trainer")
         if not _grad_cache_available:
             raise ValueError(
-                'Grad Cache package not available. You can obtain it from https://github.com/luyug/GradCache.')
+                "Grad Cache package not available. You can obtain it from https://github.com/luyug/GradCache."
+            )
         super(GCTrainer, self).__init__(*args, **kwargs)
 
         loss_fn_cls = DistributedContrastiveLoss if self.args.negatives_x_device else SimpleContrastiveLoss
@@ -102,13 +104,13 @@ class GCTrainer(TevatronTrainer):
             split_input_fn=split_dense_inputs,
             get_rep_fn=get_dense_rep,
             fp16=self.args.fp16,
-            scaler=self.scaler if self.args.fp16 else None
+            scaler=self.scaler if self.args.fp16 else None,
         )
 
     def training_step(self, model, inputs) -> torch.Tensor:
         model.train()
         queries, passages = self._prepare_inputs(inputs)
-        queries, passages = {'query': queries}, {'passage': passages}
+        queries, passages = {"query": queries}, {"passage": passages}
 
         _distributed = self.args.local_rank > -1
         self.gc.models = [model, model]

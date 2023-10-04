@@ -12,32 +12,32 @@ class SimpleTrainPreProcessor:
     tokenizer: PreTrainedTokenizer
 
     max_length: int = 128
-    columns = ['text_id', 'title', 'text']
-    title_field = 'title'
-    text_field = 'text'
+    columns = ["text_id", "title", "text"]
+    title_field = "title"
+    text_field = "text"
 
     def __post_init__(self):
         self.queries = self.read_queries(self.query_file)
         self.collection = datasets.load_dataset(
-            'csv',
+            "csv",
             data_files=self.collection_file,
             column_names=self.columns,
-            delimiter='\t',
-        )['train']
+            delimiter="\t",
+        )["train"]
 
     @staticmethod
     def read_queries(queries):
         qmap = {}
         with open(queries) as f:
             for l in f:
-                qid, qry = l.strip().split('\t')
+                qid, qry = l.strip().split("\t")
                 qmap[qid] = qry
         return qmap
 
     @staticmethod
     def read_qrel(relevance_file):
         qrel = {}
-        with open(relevance_file, encoding='utf8') as f:
+        with open(relevance_file, encoding="utf8") as f:
             tsvreader = csv.reader(f, delimiter="\t")
             for [topicid, _, docid, rel] in tsvreader:
                 assert rel == "1"
@@ -49,10 +49,7 @@ class SimpleTrainPreProcessor:
 
     def get_query(self, q):
         query_encoded = self.tokenizer.encode(
-            self.queries[q],
-            add_special_tokens=False,
-            max_length=self.max_length,
-            truncation=True
+            self.queries[q], add_special_tokens=False, max_length=self.max_length, truncation=True
         )
         return query_encoded
 
@@ -64,10 +61,7 @@ class SimpleTrainPreProcessor:
         content = title + self.tokenizer.sep_token + body
 
         passage_encoded = self.tokenizer.encode(
-            content,
-            add_special_tokens=False,
-            max_length=self.max_length,
-            truncation=True
+            content, add_special_tokens=False, max_length=self.max_length, truncation=True
         )
 
         return passage_encoded
@@ -75,9 +69,9 @@ class SimpleTrainPreProcessor:
     def process_one(self, train):
         q, pp, nn = train
         train_example = {
-            'query': self.get_query(q),
-            'positives': [self.get_passage(p) for p in pp],
-            'negatives': [self.get_passage(n) for n in nn],
+            "query": self.get_query(q),
+            "positives": [self.get_passage(p) for p in pp],
+            "negatives": [self.get_passage(n) for n in nn],
         }
 
         return json.dumps(train_example)
@@ -86,20 +80,14 @@ class SimpleTrainPreProcessor:
 @dataclass
 class SimpleCollectionPreProcessor:
     tokenizer: PreTrainedTokenizer
-    separator: str = '\t'
+    separator: str = "\t"
     max_length: int = 128
 
     def process_line(self, line: str):
         xx = line.strip().split(self.separator)
         text_id, text = xx[0], xx[1:]
         text_encoded = self.tokenizer.encode(
-            self.tokenizer.sep_token.join(text),
-            add_special_tokens=False,
-            max_length=self.max_length,
-            truncation=True
+            self.tokenizer.sep_token.join(text), add_special_tokens=False, max_length=self.max_length, truncation=True
         )
-        encoded = {
-            'text_id': text_id,
-            'text': text_encoded
-        }
+        encoded = {"text_id": text_id, "text": text_encoded}
         return json.dumps(encoded)

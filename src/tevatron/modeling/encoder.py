@@ -10,8 +10,7 @@ import torch.distributed as dist
 from transformers import PreTrainedModel, AutoModel
 from transformers.file_utils import ModelOutput
 
-from tevatron.arguments import ModelArguments, \
-    TevatronTrainingArguments as TrainingArguments
+from tevatron.arguments import ModelArguments, TevatronTrainingArguments as TrainingArguments
 
 import logging
 
@@ -32,45 +31,46 @@ class EncoderPooler(nn.Module):
         self._config = {}
 
     def forward(self, q_reps, p_reps):
-        raise NotImplementedError('EncoderPooler is an abstract class')
+        raise NotImplementedError("EncoderPooler is an abstract class")
 
     def load(self, model_dir: str):
-        pooler_path = os.path.join(model_dir, 'pooler.pt')
+        pooler_path = os.path.join(model_dir, "pooler.pt")
         if pooler_path is not None:
             if os.path.exists(pooler_path):
-                logger.info(f'Loading Pooler from {pooler_path}')
-                state_dict = torch.load(pooler_path, map_location='cpu')
+                logger.info(f"Loading Pooler from {pooler_path}")
+                state_dict = torch.load(pooler_path, map_location="cpu")
                 self.load_state_dict(state_dict)
                 return
         logger.info("Training Pooler from scratch")
         return
 
     def save_pooler(self, save_path):
-        torch.save(self.state_dict(), os.path.join(save_path, 'pooler.pt'))
-        with open(os.path.join(save_path, 'pooler_config.json'), 'w') as f:
+        torch.save(self.state_dict(), os.path.join(save_path, "pooler.pt"))
+        with open(os.path.join(save_path, "pooler_config.json"), "w") as f:
             json.dump(self._config, f)
 
 
 class EncoderModel(nn.Module):
     TRANSFORMER_CLS = AutoModel
 
-    def __init__(self,
-                 lm_q: PreTrainedModel,
-                 lm_p: PreTrainedModel,
-                 pooler: nn.Module = None,
-                 untie_encoder: bool = False,
-                 negatives_x_device: bool = False
-                 ):
+    def __init__(
+        self,
+        lm_q: PreTrainedModel,
+        lm_p: PreTrainedModel,
+        pooler: nn.Module = None,
+        untie_encoder: bool = False,
+        negatives_x_device: bool = False,
+    ):
         super().__init__()
         self.lm_q = lm_q
         self.lm_p = lm_p
         self.pooler = pooler
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
+        self.cross_entropy = nn.CrossEntropyLoss(reduction="mean")
         self.negatives_x_device = negatives_x_device
         self.untie_encoder = untie_encoder
         if self.negatives_x_device:
             if not dist.is_initialized():
-                raise ValueError('Distributed training has not been initialized for representation all gather.')
+                raise ValueError("Distributed training has not been initialized for representation all gather.")
             self.process_rank = dist.get_rank()
             self.world_size = dist.get_world_size()
 
@@ -80,10 +80,7 @@ class EncoderModel(nn.Module):
 
         # for inference
         if q_reps is None or p_reps is None:
-            return EncoderOutput(
-                q_reps=q_reps,
-                p_reps=p_reps
-            )
+            return EncoderOutput(q_reps=q_reps, p_reps=p_reps)
 
         # for training
         if self.training:
@@ -120,10 +117,10 @@ class EncoderModel(nn.Module):
         return None
 
     def encode_passage(self, psg):
-        raise NotImplementedError('EncoderModel is an abstract class')
+        raise NotImplementedError("EncoderModel is an abstract class")
 
     def encode_query(self, qry):
-        raise NotImplementedError('EncoderModel is an abstract class')
+        raise NotImplementedError("EncoderModel is an abstract class")
 
     def compute_similarity(self, q_reps, p_reps):
         return torch.matmul(q_reps, p_reps.transpose(0, 1))
@@ -146,29 +143,23 @@ class EncoderModel(nn.Module):
 
     @classmethod
     def build(
-            cls,
-            model_args: ModelArguments,
-            train_args: TrainingArguments,
-            **hf_kwargs,
+        cls,
+        model_args: ModelArguments,
+        train_args: TrainingArguments,
+        **hf_kwargs,
     ):
         # load local
         if os.path.isdir(model_args.model_name_or_path):
             if model_args.untie_encoder:
-                _qry_model_path = os.path.join(model_args.model_name_or_path, 'query_model')
-                _psg_model_path = os.path.join(model_args.model_name_or_path, 'passage_model')
+                _qry_model_path = os.path.join(model_args.model_name_or_path, "query_model")
+                _psg_model_path = os.path.join(model_args.model_name_or_path, "passage_model")
                 if not os.path.exists(_qry_model_path):
                     _qry_model_path = model_args.model_name_or_path
                     _psg_model_path = model_args.model_name_or_path
-                logger.info(f'loading query model weight from {_qry_model_path}')
-                lm_q = cls.TRANSFORMER_CLS.from_pretrained(
-                    _qry_model_path,
-                    **hf_kwargs
-                )
-                logger.info(f'loading passage model weight from {_psg_model_path}')
-                lm_p = cls.TRANSFORMER_CLS.from_pretrained(
-                    _psg_model_path,
-                    **hf_kwargs
-                )
+                logger.info(f"loading query model weight from {_qry_model_path}")
+                lm_q = cls.TRANSFORMER_CLS.from_pretrained(_qry_model_path, **hf_kwargs)
+                logger.info(f"loading passage model weight from {_psg_model_path}")
+                lm_p = cls.TRANSFORMER_CLS.from_pretrained(_psg_model_path, **hf_kwargs)
             else:
                 lm_q = cls.TRANSFORMER_CLS.from_pretrained(model_args.model_name_or_path, **hf_kwargs)
                 lm_p = lm_q
@@ -187,69 +178,58 @@ class EncoderModel(nn.Module):
             lm_p=lm_p,
             pooler=pooler,
             negatives_x_device=train_args.negatives_x_device,
-            untie_encoder=model_args.untie_encoder
+            untie_encoder=model_args.untie_encoder,
         )
         return model
 
     @classmethod
     def load(
-            cls,
-            model_name_or_path,
-            **hf_kwargs,
+        cls,
+        model_name_or_path,
+        **hf_kwargs,
     ):
         # load local
         untie_encoder = True
         if os.path.isdir(model_name_or_path):
-            _qry_model_path = os.path.join(model_name_or_path, 'query_model')
-            _psg_model_path = os.path.join(model_name_or_path, 'passage_model')
+            _qry_model_path = os.path.join(model_name_or_path, "query_model")
+            _psg_model_path = os.path.join(model_name_or_path, "passage_model")
             if os.path.exists(_qry_model_path):
-                logger.info(f'found separate weight for query/passage encoders')
-                logger.info(f'loading query model weight from {_qry_model_path}')
-                lm_q = cls.TRANSFORMER_CLS.from_pretrained(
-                    _qry_model_path,
-                    **hf_kwargs
-                )
-                logger.info(f'loading passage model weight from {_psg_model_path}')
-                lm_p = cls.TRANSFORMER_CLS.from_pretrained(
-                    _psg_model_path,
-                    **hf_kwargs
-                )
+                logger.info(f"found separate weight for query/passage encoders")
+                logger.info(f"loading query model weight from {_qry_model_path}")
+                lm_q = cls.TRANSFORMER_CLS.from_pretrained(_qry_model_path, **hf_kwargs)
+                logger.info(f"loading passage model weight from {_psg_model_path}")
+                lm_p = cls.TRANSFORMER_CLS.from_pretrained(_psg_model_path, **hf_kwargs)
                 untie_encoder = False
             else:
-                logger.info(f'try loading tied weight')
-                logger.info(f'loading model weight from {model_name_or_path}')
+                logger.info(f"try loading tied weight")
+                logger.info(f"loading model weight from {model_name_or_path}")
                 lm_q = cls.TRANSFORMER_CLS.from_pretrained(model_name_or_path, **hf_kwargs)
                 lm_p = lm_q
         else:
-            logger.info(f'try loading tied weight')
-            logger.info(f'loading model weight from {model_name_or_path}')
+            logger.info(f"try loading tied weight")
+            logger.info(f"loading model weight from {model_name_or_path}")
             lm_q = cls.TRANSFORMER_CLS.from_pretrained(model_name_or_path, **hf_kwargs)
             lm_p = lm_q
 
-        pooler_weights = os.path.join(model_name_or_path, 'pooler.pt')
-        pooler_config = os.path.join(model_name_or_path, 'pooler_config.json')
+        pooler_weights = os.path.join(model_name_or_path, "pooler.pt")
+        pooler_config = os.path.join(model_name_or_path, "pooler_config.json")
         if os.path.exists(pooler_weights) and os.path.exists(pooler_config):
-            logger.info(f'found pooler weight and configuration')
+            logger.info(f"found pooler weight and configuration")
             with open(pooler_config) as f:
                 pooler_config_dict = json.load(f)
             pooler = cls.load_pooler(model_name_or_path, **pooler_config_dict)
         else:
             pooler = None
 
-        model = cls(
-            lm_q=lm_q,
-            lm_p=lm_p,
-            pooler=pooler,
-            untie_encoder=untie_encoder
-        )
+        model = cls(lm_q=lm_q, lm_p=lm_p, pooler=pooler, untie_encoder=untie_encoder)
         return model
 
     def save(self, output_dir: str):
         if self.untie_encoder:
-            os.makedirs(os.path.join(output_dir, 'query_model'))
-            os.makedirs(os.path.join(output_dir, 'passage_model'))
-            self.lm_q.save_pretrained(os.path.join(output_dir, 'query_model'))
-            self.lm_p.save_pretrained(os.path.join(output_dir, 'passage_model'))
+            os.makedirs(os.path.join(output_dir, "query_model"))
+            os.makedirs(os.path.join(output_dir, "passage_model"))
+            self.lm_q.save_pretrained(os.path.join(output_dir, "query_model"))
+            self.lm_p.save_pretrained(os.path.join(output_dir, "passage_model"))
         else:
             self.lm_q.save_pretrained(output_dir)
         if self.pooler:

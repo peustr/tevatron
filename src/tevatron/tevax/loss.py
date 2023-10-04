@@ -10,7 +10,7 @@ def _onehot(labels: chex.Array, num_classes: int) -> chex.Array:
     return x.astype(jnp.float32)
 
 
-def p_contrastive_loss(ss: chex.Array, tt: chex.Array, axis: str = 'device') -> chex.Array:
+def p_contrastive_loss(ss: chex.Array, tt: chex.Array, axis: str = "device") -> chex.Array:
     per_shard_targets = tt.shape[0]
     per_sample_targets = int(tt.shape[0] / ss.shape[0])
     labels = jnp.arange(0, per_shard_targets, per_sample_targets) + per_shard_targets * lax.axis_index(axis)

@@ -16,13 +16,13 @@ class DensePooler(EncoderPooler):
             self.linear_p = self.linear_q
         else:
             self.linear_p = nn.Linear(input_dim, output_dim)
-        self._config = {'input_dim': input_dim, 'output_dim': output_dim, 'tied': tied, 'normalize': normalize}
+        self._config = {"input_dim": input_dim, "output_dim": output_dim, "tied": tied, "normalize": normalize}
 
     def forward(self, q: Tensor = None, p: Tensor = None, **kwargs):
         if q is not None:
             rep = self.linear_q(q[:, 0])
         elif p is not None:
-            rep =  self.linear_p(p[:, 0])
+            rep = self.linear_p(p[:, 0])
         else:
             raise ValueError
         if self.normalize:
@@ -68,7 +68,7 @@ class DenseModel(EncoderModel):
             model_args.projection_in_dim,
             model_args.projection_out_dim,
             tied=not model_args.untie_encoder,
-            normalize=model_args.normalize
+            normalize=model_args.normalize,
         )
         pooler.load(model_args.model_name_or_path)
         return pooler

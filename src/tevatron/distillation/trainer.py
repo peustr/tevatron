@@ -12,6 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class DistilTrainer(Trainer):
     def __init__(self, teacher_model, *args, **kwargs):
         super(DistilTrainer, self).__init__(*args, **kwargs)
@@ -28,8 +29,7 @@ class DistilTrainer(Trainer):
         self.model.save(output_dir)
 
     def _prepare_inputs(
-            self,
-            inputs: Tuple[Dict[str, Union[torch.Tensor, Any]], ...]
+        self, inputs: Tuple[Dict[str, Union[torch.Tensor, Any]], ...]
     ) -> List[Dict[str, Union[torch.Tensor, Any]]]:
         prepared = []
         for x in inputs:
@@ -62,15 +62,15 @@ class DistilTrainer(Trainer):
                 teacher_scores = self._dist_gather_tensor(teacher_scores)
         teacher_mat = torch.zeros(student_scores.shape, dtype=student_scores.dtype, device=teacher_scores.device)
         index = torch.arange(teacher_scores.size(0), device=teacher_scores.device)
-        teacher_scores = torch.softmax(teacher_scores.view(student_scores.size(0), -1) / self.args.teacher_temp, dim=1, dtype=student_scores.dtype)
-        teacher_mat = torch.scatter(teacher_mat,
-                                    dim=-1,
-                                    index=index.view(student_scores.size(0), -1), 
-                                    src=teacher_scores)
+        teacher_scores = torch.softmax(
+            teacher_scores.view(student_scores.size(0), -1) / self.args.teacher_temp, dim=1, dtype=student_scores.dtype
+        )
+        teacher_mat = torch.scatter(
+            teacher_mat, dim=-1, index=index.view(student_scores.size(0), -1), src=teacher_scores
+        )
         student_scores = nn.functional.log_softmax(student_scores / self.args.student_temp, dim=1)
-        loss = nn.functional.kl_div(student_scores, teacher_mat, reduction='batchmean') * self._dist_loss_scale_factor
+        loss = nn.functional.kl_div(student_scores, teacher_mat, reduction="batchmean") * self._dist_loss_scale_factor
         return loss
-
 
     def training_step(self, *args):
         return super(DistilTrainer, self).training_step(*args) / self._dist_loss_scale_factor

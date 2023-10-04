@@ -15,8 +15,7 @@ from transformers import (
     HfArgumentParser,
 )
 
-from tevatron.arguments import ModelArguments, DataArguments, \
-    TevatronTrainingArguments as TrainingArguments
+from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
 from tevatron.data import EncodeDataset, EncodeCollator
 from tevatron.modeling import EncoderOutput, UniCoilModel
 from tevatron.datasets import HFQueryDataset, HFCorpusDataset
@@ -43,7 +42,7 @@ def main():
         training_args: TrainingArguments
 
     if training_args.local_rank > 0 or training_args.n_gpu > 1:
-        raise NotImplementedError('Multi-GPU encoding is not supported.')
+        raise NotImplementedError("Multi-GPU encoding is not supported.")
 
     # Setup logging
     logging.basicConfig(
@@ -72,22 +71,23 @@ def main():
 
     text_max_length = data_args.q_max_len if data_args.encode_is_qry else data_args.p_max_len
     if data_args.encode_is_qry:
-        encode_dataset = HFQueryDataset(tokenizer=tokenizer, data_args=data_args,
-                                        cache_dir=data_args.data_cache_dir or model_args.cache_dir)
+        encode_dataset = HFQueryDataset(
+            tokenizer=tokenizer, data_args=data_args, cache_dir=data_args.data_cache_dir or model_args.cache_dir
+        )
     else:
-        encode_dataset = HFCorpusDataset(tokenizer=tokenizer, data_args=data_args,
-                                         cache_dir=data_args.data_cache_dir or model_args.cache_dir)
-    encode_dataset = EncodeDataset(encode_dataset.process(data_args.encode_num_shard, data_args.encode_shard_index),
-                                   tokenizer, max_len=text_max_length)
+        encode_dataset = HFCorpusDataset(
+            tokenizer=tokenizer, data_args=data_args, cache_dir=data_args.data_cache_dir or model_args.cache_dir
+        )
+    encode_dataset = EncodeDataset(
+        encode_dataset.process(data_args.encode_num_shard, data_args.encode_shard_index),
+        tokenizer,
+        max_len=text_max_length,
+    )
 
     encode_loader = DataLoader(
         encode_dataset,
         batch_size=training_args.per_device_eval_batch_size,
-        collate_fn=EncodeCollator(
-            tokenizer,
-            max_length=text_max_length,
-            padding='max_length'
-        ),
+        collate_fn=EncodeCollator(tokenizer, max_length=text_max_length, padding="max_length"),
         shuffle=False,
         drop_last=False,
         num_workers=training_args.dataloader_num_workers,
@@ -97,7 +97,7 @@ def main():
     model = model.to(training_args.device)
     model.eval()
 
-    for (batch_ids, batch) in tqdm(encode_loader):
+    for batch_ids, batch in tqdm(encode_loader):
         lookup_indices.extend(batch_ids)
         with torch.cuda.amp.autocast() if training_args.fp16 else nullcontext():
             with torch.no_grad():
@@ -112,18 +112,18 @@ def main():
         encoded += list(map(process_output, output))
 
     if data_args.encode_is_qry:
-        with open(data_args.encoded_save_path, 'w') as f:
+        with open(data_args.encoded_save_path, "w") as f:
             for docid, vector in zip(lookup_indices, encoded):
                 topic_str = []
                 for token in vector:
                     topic_str += [token] * vector[token]
                 topic_str = " ".join(topic_str)
-                f.write(f'{docid}\t{topic_str}\n')
+                f.write(f"{docid}\t{topic_str}\n")
 
     else:
-        with open(data_args.encoded_save_path, 'w') as f:
+        with open(data_args.encoded_save_path, "w") as f:
             for docid, vector in zip(lookup_indices, encoded):
-                f.write(json.dumps({"id": docid, "contents": "", "vector": vector})+"\n")
+                f.write(json.dumps({"id": docid, "contents": "", "vector": vector}) + "\n")
 
 
 if __name__ == "__main__":

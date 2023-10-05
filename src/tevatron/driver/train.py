@@ -18,6 +18,16 @@ from tevatron.datasets import HFTrainDataset
 logger = logging.getLogger(__name__)
 
 
+def setup(rank, world_size):
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "12355"
+    torch.distributed.init_process_group(rank=rank, world_size=world_size)
+
+
+def cleanup():
+    torch.distributed.destroy_process_group()
+
+
 def main():
     parser = HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
 
@@ -38,6 +48,8 @@ def main():
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
         )
+
+    setup(rank=training_args.local_rank, world_size=torch.cuda.device_count())
 
     # Setup logging
     logging.basicConfig(
@@ -99,6 +111,8 @@ def main():
     trainer.save_model()
     if trainer.is_world_process_zero():
         tokenizer.save_pretrained(training_args.output_dir)
+
+    cleanup()
 
 
 if __name__ == "__main__":

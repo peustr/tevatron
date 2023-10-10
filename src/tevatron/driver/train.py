@@ -3,17 +3,15 @@ import os
 import sys
 
 import torch
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-    set_seed,
-)
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser, set_seed
 
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
-from tevatron.data import TrainDataset, QPCollator
-from tevatron.modeling import DenseModel
-from tevatron.trainer import TevatronTrainer as Trainer, GCTrainer
+from tevatron.arguments import DataArguments, ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
+from tevatron.data import QPCollator, TrainDataset
 from tevatron.datasets import HFTrainDataset
+from tevatron.modeling import DenseModel
+from tevatron.trainer import GCTrainer
+from tevatron.trainer import TevatronTrainer as Trainer
 
 logger = logging.getLogger(__name__)
 

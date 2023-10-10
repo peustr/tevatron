@@ -1,5 +1,5 @@
-from .encoder import EncoderModel, EncoderPooler, EncoderOutput
-from .dense import DenseModel
-from .unicoil import UniCoilModel
-from .splade import SpladeModel
 from .colbert import ColbertModel
+from .dense import DenseModel
+from .encoder import EncoderModel, EncoderOutput, EncoderPooler
+from .splade import SpladeModel
+from .unicoil import UniCoilModel

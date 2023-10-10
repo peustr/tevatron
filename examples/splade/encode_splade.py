@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -5,21 +6,16 @@ import sys
 from contextlib import nullcontext
 
 import numpy as np
-from tqdm import tqdm
-
 import torch
-import json
-
 from torch.utils.data import DataLoader
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-)
+from tqdm import tqdm
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser
 
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
-from tevatron.data import EncodeDataset, EncodeCollator
+from tevatron.arguments import DataArguments, ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
+from tevatron.data import EncodeCollator, EncodeDataset
+from tevatron.datasets import HFCorpusDataset, HFQueryDataset
 from tevatron.modeling import EncoderOutput, SpladeModel
-from tevatron.datasets import HFQueryDataset, HFCorpusDataset
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,11 @@
 import glob
-import faiss
 from argparse import ArgumentParser
-from tqdm import tqdm
 from typing import Iterable, Tuple
+
+import faiss
 from numpy import ndarray
+from tqdm import tqdm
+
 from .__main__ import pickle_load, write_ranking
 
 

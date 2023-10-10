@@ -1,3 +1,4 @@
+import logging
 import random
 from dataclasses import dataclass
 from typing import List, Tuple
@@ -5,12 +6,10 @@ from typing import List, Tuple
 import datasets
 from datasets import load_dataset
 from torch.utils.data import Dataset
-from transformers import DataCollatorWithPadding, PreTrainedTokenizer, BatchEncoding
+from transformers import BatchEncoding, DataCollatorWithPadding, PreTrainedTokenizer
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from tevatron.arguments import DataArguments
-
-import logging
 
 logger = logging.getLogger(__name__)
 

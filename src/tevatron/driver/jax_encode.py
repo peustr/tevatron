@@ -6,19 +6,19 @@ import sys
 import datasets
 import jax
 import numpy as np
+import optax
+from flax import jax_utils
 from flax.training.common_utils import shard
+from flax.training.train_state import TrainState
 from jax import pmap
-from tevatron.arguments import DataArguments
-from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
-from tevatron.arguments import ModelArguments
-from tevatron.data import EncodeCollator, EncodeDataset
-from tevatron.datasets import HFQueryDataset, HFCorpusDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from flax.training.train_state import TrainState
-from flax import jax_utils
-import optax
 from transformers import AutoConfig, AutoTokenizer, FlaxAutoModel, HfArgumentParser, TensorType
+
+from tevatron.arguments import DataArguments, ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
+from tevatron.data import EncodeCollator, EncodeDataset
+from tevatron.datasets import HFCorpusDataset, HFQueryDataset
 
 logger = logging.getLogger(__name__)
 

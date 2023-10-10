@@ -1,16 +1,14 @@
-from cgitb import text
+import logging
 import random
+from cgitb import text
 from dataclasses import dataclass
 from typing import List, Tuple
 
 import datasets
 from torch.utils.data import Dataset
-from transformers import PreTrainedTokenizer, BatchEncoding, DataCollatorWithPadding
-
+from transformers import BatchEncoding, DataCollatorWithPadding, PreTrainedTokenizer
 
 from tevatron.arguments import DataArguments
-
-import logging
 
 logger = logging.getLogger(__name__)
 

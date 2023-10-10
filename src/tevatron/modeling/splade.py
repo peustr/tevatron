@@ -1,6 +1,8 @@
-import torch
 import logging
+
+import torch
 from transformers import AutoModelForMaskedLM
+
 from .encoder import EncoderModel
 
 logger = logging.getLogger(__name__)

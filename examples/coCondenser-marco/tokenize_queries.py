@@ -1,7 +1,9 @@
-from argparse import ArgumentParser
-from transformers import AutoTokenizer
 import os
+from argparse import ArgumentParser
+
 from tqdm import tqdm
+from transformers import AutoTokenizer
+
 from tevatron.preprocessor import MarcoPassageCollectionPreProcessor as CollectionPreProcessor
 
 parser = ArgumentParser()

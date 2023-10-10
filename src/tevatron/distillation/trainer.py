@@ -1,14 +1,12 @@
+import logging
 import os
-from typing import Dict, List, Tuple, Optional, Any, Union
-
-from transformers.trainer import Trainer
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
-from torch.utils.data import DataLoader
 import torch.distributed as dist
 from torch import nn
-import logging
-
+from torch.utils.data import DataLoader
+from transformers.trainer import Trainer
 
 logger = logging.getLogger(__name__)
 

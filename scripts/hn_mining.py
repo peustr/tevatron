@@ -1,9 +1,10 @@
 import json
 from argparse import ArgumentParser
-from datasets import load_dataset, concatenate_datasets
 from multiprocessing import Manager
-from tqdm import tqdm
+
+from datasets import concatenate_datasets, load_dataset
 from pyserini.eval.evaluate_dpr_retrieval import SimpleTokenizer, has_answers
+from tqdm import tqdm
 
 
 class BasicHardNegativeMiner:

@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
-from torch.nn import functional as F
 from torch import distributed as dist
+from torch.nn import functional as F
 
 
 class SimpleContrastiveLoss:

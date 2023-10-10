@@ -3,18 +3,14 @@ import os
 import sys
 
 import torch
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-    set_seed,
-)
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser, set_seed
 
 from tevatron.arguments import DataArguments
+from tevatron.distillation.arguments import DistilModelArguments, DistilTrainingArguments
+from tevatron.distillation.data import DistilTrainCollator, DistilTrainDataset, HFDistilTrainDataset
+from tevatron.distillation.trainer import DistilTrainer
 from tevatron.modeling import DenseModel
 from tevatron.reranker.modeling import RerankerModel
-from tevatron.distillation.data import DistilTrainDataset, DistilTrainCollator, HFDistilTrainDataset
-from tevatron.distillation.trainer import DistilTrainer
-from tevatron.distillation.arguments import DistilModelArguments, DistilTrainingArguments
 
 logger = logging.getLogger(__name__)
 

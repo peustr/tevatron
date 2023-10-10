@@ -3,17 +3,14 @@ import os
 import sys
 
 import torch
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-    set_seed,
-)
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser, set_seed
 
-from tevatron.reranker.modeling import RerankerModel
-from tevatron.reranker.data import RerankerTrainDataset, RerankerTrainCollator
-from tevatron.reranker.trainer import RerankerTrainer
+from tevatron.arguments import DataArguments, ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
 from tevatron.datasets import HFTrainDataset
+from tevatron.reranker.data import RerankerTrainCollator, RerankerTrainDataset
+from tevatron.reranker.modeling import RerankerModel
+from tevatron.reranker.trainer import RerankerTrainer
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,9 @@
-import json
 import csv
+import json
+from dataclasses import dataclass
+
 import datasets
 from transformers import PreTrainedTokenizer
-from dataclasses import dataclass
 
 
 @dataclass

@@ -1,8 +1,9 @@
-import torch
-from torch import Tensor, nn
 import logging
 
-from .encoder import EncoderPooler, EncoderModel
+import torch
+from torch import Tensor, nn
+
+from .encoder import EncoderModel, EncoderPooler
 
 logger = logging.getLogger(__name__)
 

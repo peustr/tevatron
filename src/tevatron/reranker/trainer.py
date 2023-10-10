@@ -1,9 +1,8 @@
+import logging
 import os
 from typing import Optional
 
 from transformers.trainer import Trainer
-
-import logging
 
 logger = logging.getLogger(__name__)
 

@@ -12,19 +12,15 @@ from flax.jax_utils import prefetch_to_device
 from flax.training.common_utils import get_metrics, shard
 from torch.utils.data import DataLoader, IterableDataset
 from tqdm import tqdm
-from transformers import AutoConfig, AutoTokenizer, FlaxAutoModel
-from transformers import (
-    HfArgumentParser,
-    set_seed,
-)
+from transformers import AutoConfig, AutoTokenizer, FlaxAutoModel, HfArgumentParser, set_seed
 
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments
+from tevatron.arguments import DataArguments, ModelArguments, TevatronTrainingArguments
 from tevatron.tevax.training import (
-    TiedParams,
-    RetrieverTrainState,
-    retriever_train_step,
-    grad_cache_train_step,
     DualParams,
+    RetrieverTrainState,
+    TiedParams,
+    grad_cache_train_step,
+    retriever_train_step,
 )
 
 logger = logging.getLogger(__name__)

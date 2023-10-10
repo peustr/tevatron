@@ -1,7 +1,7 @@
-import numpy as np
-import faiss
-
 import logging
+
+import faiss
+import numpy as np
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)

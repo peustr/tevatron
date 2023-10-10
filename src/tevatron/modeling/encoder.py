@@ -1,18 +1,18 @@
 import copy
 import json
+import logging
 import os
 from dataclasses import dataclass
 from typing import Dict, Optional
 
 import torch
-from torch import nn, Tensor
 import torch.distributed as dist
-from transformers import PreTrainedModel, AutoModel
+from torch import Tensor, nn
+from transformers import AutoModel, PreTrainedModel
 from transformers.file_utils import ModelOutput
 
-from tevatron.arguments import ModelArguments, TevatronTrainingArguments as TrainingArguments
-
-import logging
+from tevatron.arguments import ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
 
 logger = logging.getLogger(__name__)
 

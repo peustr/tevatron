@@ -1,16 +1,14 @@
+import logging
 import random
 from dataclasses import dataclass
 from typing import List, Tuple
 
 import datasets
 from torch.utils.data import Dataset
-from transformers import PreTrainedTokenizer, BatchEncoding, DataCollatorWithPadding
-
+from transformers import BatchEncoding, DataCollatorWithPadding, PreTrainedTokenizer
 
 from .arguments import DataArguments
 from .trainer import TevatronTrainer
-
-import logging
 
 logger = logging.getLogger(__name__)
 

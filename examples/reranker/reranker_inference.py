@@ -6,19 +6,15 @@ from contextlib import nullcontext
 from unittest import result
 
 import numpy as np
-from tqdm import tqdm
-
 import torch
-
 from torch.utils.data import DataLoader
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-)
-from tevatron.reranker.data import HFRerankDataset, RerankerInferenceDataset, RerankerInferenceCollator
-from tevatron.reranker.modeling import RerankerModel
+from tqdm import tqdm
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser
 
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments as TrainingArguments
+from tevatron.arguments import DataArguments, ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
+from tevatron.reranker.data import HFRerankDataset, RerankerInferenceCollator, RerankerInferenceDataset
+from tevatron.reranker.modeling import RerankerModel
 
 logger = logging.getLogger(__name__)
 

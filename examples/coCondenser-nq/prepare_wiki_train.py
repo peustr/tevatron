@@ -2,8 +2,8 @@ import json
 import os
 from argparse import ArgumentParser
 
-from transformers import AutoTokenizer, PreTrainedTokenizer
 from tqdm import tqdm
+from transformers import AutoTokenizer, PreTrainedTokenizer
 
 parser = ArgumentParser()
 parser.add_argument("--input", type=str, required=True)

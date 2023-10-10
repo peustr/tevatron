@@ -17,6 +17,7 @@
 """MsMarco Passage Reranking dataset."""
 
 import json
+
 import datasets
 
 _CITATION = """

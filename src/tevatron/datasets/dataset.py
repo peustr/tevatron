@@ -1,7 +1,8 @@
 from datasets import load_dataset
 from transformers import PreTrainedTokenizer
-from .preprocessor import TrainPreProcessor, QueryPreProcessor, CorpusPreProcessor
+
 from ..arguments import DataArguments
+from .preprocessor import CorpusPreProcessor, QueryPreProcessor, TrainPreProcessor
 
 DEFAULT_PROCESSORS = [TrainPreProcessor, QueryPreProcessor, CorpusPreProcessor]
 PROCESSOR_INFO = {

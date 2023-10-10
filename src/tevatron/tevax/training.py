@@ -1,12 +1,11 @@
 from functools import partial
-from typing import Tuple, Any, Union
+from typing import Any, Tuple, Union
 
 import jax
-from jax import numpy as jnp
-
-from flax.training.train_state import TrainState
 from flax.core import FrozenDict
 from flax.struct import PyTreeNode
+from flax.training.train_state import TrainState
+from jax import numpy as jnp
 
 from .loss import p_contrastive_loss
 

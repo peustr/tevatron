@@ -1,15 +1,15 @@
+import logging
 import os
 from dataclasses import dataclass
 from typing import Dict, Optional
 
 import torch
-from torch import nn, Tensor
+from torch import Tensor, nn
 from transformers import AutoModelForSequenceClassification, PreTrainedModel
 from transformers.file_utils import ModelOutput
 
-from tevatron.arguments import ModelArguments, TevatronTrainingArguments as TrainingArguments
-
-import logging
+from tevatron.arguments import ModelArguments
+from tevatron.arguments import TevatronTrainingArguments as TrainingArguments
 
 logger = logging.getLogger(__name__)
 

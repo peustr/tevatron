@@ -1,16 +1,14 @@
+import logging
 import os
 from itertools import repeat
-from typing import Dict, List, Tuple, Optional, Any, Union
-
-from transformers.trainer import Trainer
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
-from torch.utils.data import DataLoader
 import torch.distributed as dist
+from torch.utils.data import DataLoader
+from transformers.trainer import Trainer
 
-from .loss import SimpleContrastiveLoss, DistributedContrastiveLoss
-
-import logging
+from .loss import DistributedContrastiveLoss, SimpleContrastiveLoss
 
 logger = logging.getLogger(__name__)
 

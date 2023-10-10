@@ -1,1 +1,1 @@
-from .training import TiedParams, DualParams, RetrieverTrainState, retriever_train_step
+from .training import DualParams, RetrieverTrainState, TiedParams, retriever_train_step

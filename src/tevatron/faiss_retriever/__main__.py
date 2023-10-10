@@ -1,14 +1,13 @@
-import pickle
-
-import numpy as np
 import glob
+import logging
+import pickle
 from argparse import ArgumentParser
 from itertools import chain
+
+import numpy as np
 from tqdm import tqdm
 
 from .retriever import BaseFaissIPRetriever
-
-import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

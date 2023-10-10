@@ -1,10 +1,12 @@
-from argparse import ArgumentParser
-from transformers import AutoTokenizer
 import os
 import random
-from tqdm import tqdm
+from argparse import ArgumentParser
 from datetime import datetime
 from multiprocessing import Pool
+
+from tqdm import tqdm
+from transformers import AutoTokenizer
+
 from tevatron.preprocessor import MarcoPassageTrainPreProcessor as TrainPreProcessor
 
 

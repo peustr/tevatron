@@ -1,19 +1,16 @@
 import logging
 import os
 import sys
+from dataclasses import dataclass, field
 
 import torch
-from transformers import AutoConfig, AutoTokenizer
-from transformers import (
-    HfArgumentParser,
-    set_seed,
-)
-from dataclasses import dataclass, field
-from tevatron.arguments import ModelArguments, DataArguments, TevatronTrainingArguments
-from tevatron.data import TrainDataset, QPCollator
+from transformers import AutoConfig, AutoTokenizer, HfArgumentParser, set_seed
+
+from tevatron.arguments import DataArguments, ModelArguments, TevatronTrainingArguments
+from tevatron.data import QPCollator, TrainDataset
+from tevatron.datasets import HFTrainDataset
 from tevatron.modeling import SpladeModel
 from tevatron.trainer import TevatronTrainer
-from tevatron.datasets import HFTrainDataset
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
-import jax.numpy as jnp
-from jax import lax
-import optax
 import chex
+import jax.numpy as jnp
+import optax
+from jax import lax
 
 
 def _onehot(labels: chex.Array, num_classes: int) -> chex.Array:
